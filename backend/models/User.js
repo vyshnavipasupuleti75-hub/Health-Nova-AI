@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const userSchema=new mongoose.Schema({name:{type:String,required:true,trim:true},email:{type:String,required:true,unique:true,lowercase:true,trim:true},password:{type:String,required:true,minlength:6},role:{type:String,enum:['patient','doctor'],default:'patient'},phone:String,dateOfBirth:Date,age:{type:Number,min:1,max:120},gender:{type:String,enum:['','Female','Male','Non-binary','Prefer not to say'],default:''},bloodGroup:{type:String,enum:['A+','A-','B+','B-','AB+','AB-','O+','O-','']},height:Number,weight:Number,emergencyContact:String,address:String,medicalConditions:String,profilePicture:String},{timestamps:true});
+export default mongoose.model('User',userSchema);

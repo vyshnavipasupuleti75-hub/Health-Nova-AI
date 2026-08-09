@@ -1,0 +1,2 @@
+import {FiDroplet,FiMail,FiPhone,FiUser} from 'react-icons/fi';
+export default function ProfileCard(){const user=JSON.parse(localStorage.getItem('user')||'{}');return <aside className="profile-card"><div className="avatar">{(user.name||'U')[0]}</div><h3>{user.name||'Health User'}</h3><p>{user.role||'Patient'}</p><ul><li><FiUser/> {user.age||'--'} years</li><li><FiDroplet/> {user.bloodGroup||'Not set'}</li><li><FiMail/> {user.email||'Not set'}</li><li><FiPhone/> {user.phone||'Not set'}</li></ul></aside>}

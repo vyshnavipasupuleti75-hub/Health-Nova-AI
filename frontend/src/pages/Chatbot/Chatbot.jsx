@@ -1,0 +1,2 @@
+import ChatPanel from '../../components/ChatPanel';import '../../styles/chatbot.css';
+export default function Chatbot(){return <><header className="page-header"><div><span>NOVA ASSISTANT</span><h1>AI Health Chatbot</h1><p>Friendly health education and natural conversation in English and Telugu.</p></div></header><ChatPanel/><p className="medical-note">For emergencies, contact local emergency services. Nova cannot diagnose conditions or prescribe treatment.</p></>}

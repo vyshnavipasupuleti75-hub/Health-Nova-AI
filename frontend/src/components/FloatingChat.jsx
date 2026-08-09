@@ -1,0 +1,2 @@
+import {useState} from 'react';import {FaRobot} from 'react-icons/fa6';import ChatPanel from './ChatPanel';
+export default function FloatingChat(){const [open,setOpen]=useState(false);return <div className={`floating-chat-wrap ${open?'open':''}`}>{open&&<div className="floating-chat-panel"><ChatPanel compact onClose={()=>setOpen(false)}/></div>}<button className="floating-chat" onClick={()=>setOpen(value=>!value)} aria-label={open?'Close AI assistant':'Open AI assistant'} aria-expanded={open}>{open?'×':<FaRobot/>}</button></div>}

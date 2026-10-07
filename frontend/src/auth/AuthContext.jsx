@@ -1,8 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getProfile } from '../services/auth';
+import { applyTheme } from '../utils/theme';
+import { detachPushSubscription, ensurePushSubscription, notificationPermission } from '../utils/notifications';
 
 const AuthContext = createContext(null);
-const SPLASH_DURATION = 1800;
+export const DEFAULT_SETTINGS = { healthNotifications: false, waterReminders: { enabled: false, intervalMinutes: 120 }, language: 'en', darkMode: false };
+
+// Browser data that belongs to one signed-in user and must not leak to the next one.
+function clearUserSessionData() {
+  localStorage.removeItem('currentReport');
+  localStorage.removeItem('analysis');
+  sessionStorage.removeItem('health-nova-chat');
+}
 
 export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
@@ -11,7 +20,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true;
     const restoreSession = async () => {
-      const splashDelay = new Promise((resolve) => setTimeout(resolve, SPLASH_DURATION));
       const token = localStorage.getItem('token');
       let restoredUser = null;
       if (token) {
@@ -24,30 +32,58 @@ export function AuthProvider({ children }) {
           localStorage.removeItem('user');
         }
       }
-      await splashDelay;
       if (!active) return;
       setUser(restoredUser);
-      setAuthLoading('exiting');
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      if (active) setAuthLoading(false);
+      setAuthLoading(false);
     };
     restoreSession();
     return () => { active = false; };
   }, []);
 
+  // The theme follows the signed-in user's saved setting; signed-out pages use the light theme.
+  // Skip the fade while the session is still being restored so the first paint does not animate.
+  // authLoading is true only until the saved JWT has been checked; the startup intro timing lives in App.
+  const darkMode = Boolean(user?.settings?.darkMode);
+  useEffect(() => {
+    if (authLoading) return;
+    applyTheme(darkMode ? 'dark' : 'light', { animate: true });
+  }, [darkMode, authLoading]);
+
   const completeAuthentication = useCallback((token, nextUser) => {
+    clearUserSessionData();
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(nextUser));
     setUser(nextUser);
   }, []);
 
+  // Call with the user object returned by the API after any profile/settings change.
+  const updateUser = useCallback((nextUser) => {
+    localStorage.setItem('user', JSON.stringify(nextUser));
+    setUser(nextUser);
+  }, []);
+
   const logout = useCallback(() => {
+    detachPushSubscription(localStorage.getItem('token'));
+    // Without this, Google could silently pick the same account on the next visit.
+    window.google?.accounts?.id?.disableAutoSelect?.();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    clearUserSessionData();
     setUser(null);
   }, []);
 
-  return <AuthContext.Provider value={{ authLoading, user, completeAuthentication, logout }}>
+  // Re-attach this browser for push after login/refresh when the account has notifications on and permission
+  // was already granted. Never prompts: permission is only requested from the Settings toggles.
+  const wantsPush = Boolean(user?.settings?.healthNotifications || user?.settings?.waterReminders?.enabled);
+  const userId = user?.id || user?._id;
+  useEffect(() => {
+    if (!userId || !wantsPush || notificationPermission() !== 'granted') return;
+    ensurePushSubscription().catch(() => {});
+  }, [userId, wantsPush]);
+
+  const settings = { ...DEFAULT_SETTINGS, ...(user?.settings || {}) };
+
+  return <AuthContext.Provider value={{ authLoading, user, settings, completeAuthentication, updateUser, logout }}>
     {children}
   </AuthContext.Provider>;
 }

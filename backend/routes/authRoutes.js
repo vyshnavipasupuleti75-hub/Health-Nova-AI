@@ -1,1 +1,1 @@
-import {Router} from 'express';import {login,register} from '../controllers/authController.js';const router=Router();router.post('/register',register);router.post('/login',login);export default router;
+import {Router} from 'express';import {googleLogin,linkGoogleAccount,login,register} from '../controllers/authController.js';const router=Router();router.post('/register',register);router.post('/login',login);router.post('/google',googleLogin);router.post('/google/link',linkGoogleAccount);export default router;

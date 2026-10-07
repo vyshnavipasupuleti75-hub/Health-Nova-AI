@@ -4,3 +4,5 @@ export const registerUser=(data)=>api.post('/auth/register',data);
 export const loginWithGoogle=(data)=>api.post('/auth/google',data);
 export const getProfile=()=>api.get('/users/profile');
 export const updateProfile=(data)=>api.put('/users/profile',data);
+export const updateSettings=(data)=>api.put('/users/settings',data);
+export const linkGoogleAccount=(data)=>api.post('/auth/google/link',data);

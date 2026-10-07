@@ -7,5 +7,10 @@
     "build": "npm run build --prefix frontend",
     "start": "npm start --prefix backend"
   },
-  "devDependencies": { "concurrently": "^9.1.2" }
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "@react-oauth/google": "^0.13.5"
+  }
 }

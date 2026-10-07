@@ -23,4 +23,16 @@ api.interceptors.response.use(
 );
 
 export const API_ORIGIN = new URL(apiBaseUrl).origin;
+// The backend stores profile photos as server-relative paths such as /uploads/avatar-123.jpg.
+export function profilePhotoUrl(user) {
+  const stored = user?.profilePicture;
+  if (!stored) return '';
+  return /^https?:\/\//i.test(stored) ? stored : `${API_ORIGIN}${stored.startsWith('/') ? '' : '/'}${stored}`;
+}
+export function getApiErrorMessage(error, fallback) {
+  if (error.response?.data?.message) return error.response.data.message;
+  if (error.code === 'ECONNABORTED') return `The HealthNova API at ${API_ORIGIN} did not respond in time.`;
+  if (error.code === 'ERR_NETWORK') return `Cannot reach the HealthNova API at ${API_ORIGIN}. Make sure the backend is running.`;
+  return import.meta.env.DEV && error.message ? `${fallback} (${error.message})` : fallback;
+}
 export default api;

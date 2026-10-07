@@ -6,6 +6,7 @@ import { languages, speak, startListening, stopSpeaking } from '../utils/speech'
 import { chatFallback, detectLanguage, timeLabel } from '../utils/chat';
 import { resolveChatLanguage } from '../utils/chat';
 import MarkdownMessage from './MarkdownMessage';
+import { useAuth } from '../auth/AuthContext';
 
 const SESSION_KEY = 'health-nova-chat';
 const greeting = { role: 'assistant', text: 'Hello! I’m Nova. How can I help you today?', language: 'en', time: timeLabel() };
@@ -18,7 +19,10 @@ function loadMessages() {
 function ChatPanel({ compact = false, onClose }) {
   const [messages, setMessages] = useState(loadMessages);
   const [input, setInput] = useState('');
-  const [language, setLanguage] = useState('en');
+  const { settings } = useAuth();
+  const [language, setLanguage] = useState(languages[settings.language] ? settings.language : 'en');
+  // Follow the preferred language saved in Settings.
+  useEffect(() => { if (languages[settings.language]) setLanguage(settings.language); }, [settings.language]);
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -75,7 +79,7 @@ function ChatPanel({ compact = false, onClose }) {
     setMessages((current) => [...current, { role: 'user', text: question, language: detected, time: timeLabel() }]);
     setLoading(true);
     try {
-      const history = messages.slice(-8).map(({ role, text }) => ({ role, text }));
+      const history = messages.filter((item) => !item.error).slice(-8).map(({ role, text }) => ({ role, text }));
       const response = await api.post('/chat', { message: question, language: detected, history, requestId }, { headers: { 'x-request-id': requestId }, timeout: 120000 });
       console.info(`[chat:${requestId}] Frontend response received`, { status: response.status, provider: response.data?.provider, hasReply: Boolean(response.data?.reply) });
       const reply = response.data?.reply?.trim() || chatFallback(detected);
@@ -85,13 +89,16 @@ function ChatPanel({ compact = false, onClose }) {
         await addStreamedReply(reply, replyLanguage);
       }
     } catch (error) {
-      console.error(`[chat:${requestId}] Frontend chat failed`, { message: error.message, status: error.response?.status, data: error.response?.data });
+      // A handled "AI unavailable" answer from the backend is a warning; anything else (network, crash) is an error.
+      (String(error.response?.data?.code || '').startsWith('AI_') ? console.warn : console.error)(`[chat:${requestId}] Frontend chat failed`, { message: error.message, status: error.response?.status, data: error.response?.data });
       const fallback = !navigator.onLine
         ? (detected === 'te' ? 'ఇంటర్నెట్ కనెక్షన్ లేదు. కనెక్షన్ వచ్చిన తర్వాత మళ్లీ ప్రయత్నించండి.' : 'You appear to be offline. Please reconnect and try again.')
         : error.response?.data?.message || chatFallback(detected);
       if (mounted.current) {
         setLoading(false);
-        await addStreamedReply(fallback, detected);
+        // Shown as an error notice (not an assistant answer): not read aloud, not sent back as chat history.
+        setMessages((current) => [...current, { id: Date.now(), role: 'assistant', error: true, text: fallback, language: detected, time: timeLabel() }]);
+        setInput((current) => current || question);
       }
     } finally {
       requestActive.current = false;
@@ -110,7 +117,7 @@ function ChatPanel({ compact = false, onClose }) {
   return <section className={`chat-card ${compact ? 'compact-chat' : ''} ${speaking ? 'is-speaking' : ''}`}>
     <div className="chat-title"><span><FaRobot /></span><div><h3>Nova Assistant</h3><small><i /> System Online</small></div><select aria-label="Voice language" value={language} onChange={(event) => setLanguage(event.target.value)}>{Object.entries(languages).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}</select>{onClose && <button className="chat-close" onClick={onClose} aria-label="Close chat">×</button>}</div>
     {speaking && <button className="stop-speaking" onClick={stopVoice}><FiSquare /> Stop speaking</button>}
-    <div className="messages" aria-live="polite">{messages.map((message, index) => <div key={message.id || `${message.time}-${index}`} className={`message ${message.role}`}><div className="bubble">{message.role==='assistant'?<MarkdownMessage text={message.text}/>:<p>{message.text}</p>}<small>{message.time}</small></div>{message.role === 'assistant' && message.text && <button onClick={() => speakReply(message.text.replace(/[#*_`]/g,''), message.language)} aria-label="Read response"><FiVolume2 /></button>}</div>)}{loading && <div className="message assistant thinking"><div className="bubble"><span /><span /><span /></div></div>}<div ref={endRef} /></div>
+    <div className="messages" aria-live="polite">{messages.map((message, index) => <div key={message.id || `${message.time}-${index}`} className={`message ${message.role}${message.error ? ' error' : ''}`} role={message.error ? 'alert' : undefined}><div className="bubble">{message.role==='assistant'?<MarkdownMessage text={message.text}/>:<p>{message.text}</p>}<small>{message.time}</small></div>{message.role === 'assistant' && message.text && !message.error && <button onClick={() => speakReply(message.text.replace(/[#*_`]/g,''), message.language)} aria-label="Read response"><FiVolume2 /></button>}</div>)}{loading && <div className="message assistant thinking"><div className="bubble"><span /><span /><span /></div></div>}<div ref={endRef} /></div>
     {voiceError && <p className="voice-error">{voiceError}</p>}
     <div className="chat-input"><button className={listening ? 'recording' : ''} onClick={listen} aria-label={listening ? 'Stop listening' : 'Start voice input'}><FiMic /></button><input value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') send(); }} placeholder={listening ? 'Listening...' : language === 'te' ? 'ఆరోగ్య ప్రశ్న అడగండి...' : 'Ask anything...'} /><button onClick={() => send()} disabled={loading || !input.trim()} aria-label="Send message"><FiSend /></button></div>
   </section>;

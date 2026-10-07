@@ -1,0 +1,50 @@
+/* Elastic 3D intro overlay. DOM layers react to scene phases (.phase-brand, .phase-dive) emitted by
+   components/intro/elasticScene.js. --spring-pop / --spring-soft are linear() easings sampled from the
+   same spring solver (utils/spring.js); browsers without linear() fall back to a back-out bezier. */
+.ci{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#040814;color:#eef4ff;font-family:"Plus Jakarta Sans",Inter,ui-sans-serif,system-ui,"Segoe UI",sans-serif}
+.ci-stage,.ci-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ci-canvas{opacity:0;transition:opacity .5s ease}
+.ci.is-started .ci-canvas{opacity:1}
+.ci-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 70% at 50% 48%,transparent 45%,rgba(2,4,12,.72))}
+
+/* Brand: letters drop in on a physical spring, one after another */
+.ci-brand{position:absolute;left:0;right:0;top:calc(50% + clamp(56px,10vh,110px));padding:28px 16px;text-align:center;pointer-events:none;visibility:hidden;background:radial-gradient(ellipse 52% 60% at 50% 50%,rgba(4,8,20,.62),transparent 75%)}
+.ci.phase-brand .ci-brand{visibility:visible}
+.ci-brand h1{margin:0;font-size:clamp(34px,8.4vw,112px);font-weight:800;line-height:1;letter-spacing:.12em;text-transform:uppercase;color:#f3f7ff;text-shadow:0 0 42px rgba(79,155,255,.38);perspective:600px}
+.ci-letter{display:inline-block;opacity:0;transform:translateY(.75em) scale(.55) rotateX(75deg);transform-origin:50% 100%}
+.ci-letter.is-accent{background:linear-gradient(135deg,#8cc6ff,#3b8bff 60%,#6f8bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ci.phase-brand .ci-letter{animation:ci-letter var(--spring-pop-duration,.9s) var(--spring-pop,cubic-bezier(.34,1.56,.64,1)) calc(var(--i) * 48ms) forwards}
+.ci-brand p{margin:clamp(14px,2.2vh,22px) 0 0;font-size:clamp(11px,1.45vw,16px);font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:#b3cbf0;opacity:0;transform:translateY(14px)}
+.ci.phase-brand .ci-brand p{animation:ci-rise var(--spring-soft-duration,.9s) var(--spring-soft,cubic-bezier(.34,1.56,.64,1)) .5s forwards}
+.ci.phase-dive .ci-brand{animation:ci-brand-out .5s ease-in forwards}
+
+/* The camera dives into the logo; a bloom of brand light carries into the Welcome screen */
+.ci-flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(170,210,255,.9),rgba(37,99,235,.75) 30%,rgba(10,30,90,.95) 64%,#050d22)}
+.ci.phase-dive .ci-flash{animation:ci-fade .55s ease-in .62s forwards}
+
+.ci-caption{position:absolute;left:20px;bottom:18px;margin:0;font-size:11.5px;letter-spacing:.04em;color:rgba(169,190,226,.62);opacity:0;transition:opacity .5s ease}
+.ci.phase-impact .ci-caption{opacity:1}
+.ci.phase-dive .ci-caption{opacity:0}
+.ci-skip{position:absolute;right:20px;bottom:16px;padding:9px 16px;border:1px solid rgba(170,200,255,.3);border-radius:999px;background:rgba(10,20,48,.55);color:#cfe0ff;font:inherit;font-size:13px;font-weight:600;cursor:pointer;opacity:0;animation:ci-fade .5s ease 1s forwards;transition:background .2s ease,border-color .2s ease,transform var(--spring-pop-duration,.3s) var(--spring-pop,ease)}
+.ci-skip:hover{background:rgba(30,60,130,.6);border-color:rgba(190,215,255,.55);transform:scale(1.05)}
+.ci-skip:focus-visible{outline:2px solid #bcd7ff;outline-offset:3px;opacity:1}
+
+.ci.is-exiting{animation:ci-exit .65s ease forwards;pointer-events:none}
+
+/* Reduced motion: the settled composition with the brand already in place */
+.ci.is-static .ci-letter,.ci.is-static .ci-brand p{animation:none!important;opacity:1;transform:none}
+.ci.is-static .ci-caption{opacity:1}
+
+@keyframes ci-letter{to{opacity:1;transform:none}}
+@keyframes ci-rise{to{opacity:1;transform:none}}
+@keyframes ci-brand-out{to{opacity:0;transform:scale(1.25);filter:blur(8px)}}
+@keyframes ci-fade{to{opacity:1}}
+@keyframes ci-exit{to{opacity:0;visibility:hidden}}
+
+@media (max-width:600px){
+  .ci-brand{top:calc(50% + 15vh)}
+  .ci-brand h1{letter-spacing:.08em}
+  .ci-brand p{letter-spacing:.18em;font-size:11px}
+  .ci-caption{left:16px;right:120px;bottom:22px;font-size:10.5px}
+  .ci-skip{right:16px}
+}

@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiCalendar, FiDroplet, FiLock, FiMail, FiPhone, FiUser } from 'react-icons/fi';
 import { FaShieldHeart, FaUserDoctor } from 'react-icons/fa6';
 import FormField from '../../components/FormField';
-import { registerUser } from '../../services/auth';
+import GoogleSignIn from '../../components/GoogleSignIn';
+import GoogleLinkPrompt from '../../components/GoogleLinkPrompt';
+import { loginWithGoogle, registerUser } from '../../services/auth';
 import { useAuth } from '../../auth/AuthContext';
+import { getApiErrorMessage } from '../../services/api';
 import '../../styles/register.css';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -13,9 +16,11 @@ const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 export default function Register() {
   const [role, setRole] = useState('patient');
   const [message, setMessage] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [linkRequest, setLinkRequest] = useState(null);
   const navigate = useNavigate();
   const { completeAuthentication } = useAuth();
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({ shouldUnregister: true });
+  const { register, getValues, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({ shouldUnregister: true });
 
   const submit = async (data) => {
     try {
@@ -24,15 +29,41 @@ export default function Register() {
       completeAuthentication(response.data.token, response.data.user);
       navigate('/dashboard', { replace: true });
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Unable to register. Is the API running?');
+      setMessage(getApiErrorMessage(error, 'Unable to register.'));
     }
   };
+
+  const handleGoogleCredential = useCallback(async (credential) => {
+    if (!getValues('terms')) {
+      setMessage('Please accept the terms before continuing with Google.');
+      return;
+    }
+    try {
+      setGoogleLoading(true);
+      setMessage('');
+      const response = await loginWithGoogle({ credential, role });
+      completeAuthentication(response.data.token, response.data.user);
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      const data = error.response?.data;
+      if (data?.code === 'GOOGLE_LINK_REQUIRED') setLinkRequest({ email: data.email, linkToken: data.linkToken });
+      else setMessage(getApiErrorMessage(error, 'Google sign-in could not be completed. Please try again.'));
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [completeAuthentication, getValues, navigate, role]);
+
+  const handleGoogleError = useCallback((errorMessage) => setMessage(errorMessage), []);
+  const handleLinked = useCallback((token, linkedUser) => {
+    completeAuthentication(token, linkedUser);
+    navigate('/dashboard', { replace: true });
+  }, [completeAuthentication, navigate]);
 
   return <main className="register-page">
     <section className="register-card">
       <Link to="/login" className="back">←</Link>
       <div className="register-heading"><FaShieldHeart /><h1>Create Account</h1><p>Fill in the details to get started</p></div>
-      <form onSubmit={handleSubmit(submit)}>
+      {linkRequest ? <GoogleLinkPrompt request={linkRequest} onLinked={handleLinked} onCancel={() => setLinkRequest(null)} /> : <form onSubmit={handleSubmit(submit)}>
         <FormField icon={FiUser} placeholder="Full Name" error={errors.name?.message}
           {...register('name', { required: 'Name is required' })} />
         <FormField icon={FiMail} type="email" placeholder="Email" error={errors.email?.message}
@@ -73,8 +104,12 @@ export default function Register() {
         {errors.terms && <p className="error-text">Please accept the terms.</p>}
         {message && <p className="error-text">{message}</p>}
         <button className="primary-btn" disabled={isSubmitting}>{isSubmitting ? 'Creating account...' : 'Register →'}</button>
+        <div className="or">OR</div>
+        <div className={googleLoading ? 'google-auth-loading' : ''}>
+          <GoogleSignIn onCredential={handleGoogleCredential} onError={handleGoogleError} />
+        </div>
         <p className="already">Already have an account? <Link to="/login">Login</Link></p>
-      </form>
+      </form>}
     </section>
   </main>;
 }

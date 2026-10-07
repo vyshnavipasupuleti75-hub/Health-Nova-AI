@@ -1,6 +1,6 @@
 import { detectLanguage, getChatReply } from './chatService.js';
 
-const DEFAULT_MODEL = 'gemini-2.0-flash';
+const DEFAULT_MODEL = 'gemini-flash-latest';
 
 function buildContents(history, message) {
   const contents = history
@@ -49,7 +49,9 @@ export async function generateAIReply({ message, language, history = [], request
     console.info(`[chat:${requestId}] Gemini API returned status=${response.status}`);
 
     if (!response.ok) {
-      throw new Error(data?.error?.message || `Gemini request failed with status ${response.status}`);
+      const error = new Error(data?.error?.message || `Gemini request failed with status ${response.status}`);
+      error.status = response.status; // 429 = quota/rate limit, 503 = model overloaded
+      throw error;
     }
 
     const reply = data.candidates?.[0]?.content?.parts

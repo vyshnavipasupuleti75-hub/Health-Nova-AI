@@ -1,0 +1,85 @@
+/* HealthNova dark theme. Applied via <html data-theme="dark"> (see utils/theme.js).
+   Tokens first, then overrides for surfaces that use hard-coded light colours. */
+:root[data-theme="dark"]{color-scheme:dark;--primary:#6ea8ff;--primary-dark:#a9c9ff;--primary-soft:rgba(110,168,255,.14);--blue-light:#7db4ff;--white:#0f1733;--gray-50:rgba(148,170,220,.07);--gray-100:rgba(148,170,220,.16);--gray-300:rgba(148,170,220,.34);--gray-500:#aab6d3;--text:#e8eeff;--green:#43d3ab;--purple:#ab9eff;--danger:#ff8f86;--shadow:0 18px 50px rgba(0,0,0,.45);--surface:rgba(13,20,42,.86);--surface-solid:#0f1733;--surface-border:rgba(140,165,230,.16);--input-bg:rgba(6,11,28,.62);--input-border:rgba(148,170,220,.28);--focus-ring:rgba(110,168,255,.42);--fill:linear-gradient(135deg,#2a76ef,#1452c4);background:#050816}
+
+/* Smooth, short theme switch. The class only exists for ~450ms after a change. */
+:root.theme-transition,:root.theme-transition *:not(.night-sky):not(.night-sky *),:root.theme-transition *::before,:root.theme-transition *::after{transition:background-color .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease,fill .35s ease,stroke .35s ease!important}
+
+/* Shell & navigation */
+:root[data-theme="dark"] .app-shell{background:transparent}
+:root[data-theme="dark"] .sidebar{background:rgba(7,11,27,.9);border-right-color:var(--surface-border)}
+:root[data-theme="dark"] .sidebar nav a:hover{background:rgba(148,170,220,.08)}
+:root[data-theme="dark"] .menu-btn{background:var(--surface-solid);box-shadow:inset 0 0 0 1px var(--surface-border),0 10px 26px rgba(0,0,0,.45)}
+
+/* Cards & panels */
+:root[data-theme="dark"] :is(.stat-card,.quick-grid a,.feature-grid article,.profile-card,.content-card,.settings-card,.upload-card){background:var(--surface);box-shadow:inset 0 0 0 1px var(--surface-border),0 12px 32px rgba(0,0,0,.32)}
+:root[data-theme="dark"] :is(.glass-card,.chart-card,.content-card,.history-card,.profile-form-card,.chat-card,.top-user-profile,.report-decision-bar){background:var(--surface);border-color:var(--surface-border);backdrop-filter:none}
+:root[data-theme="dark"] :is(.history-card,.chat-card,.profile-form-card,.report-decision-bar){box-shadow:0 14px 38px rgba(0,0,0,.38)}
+:root[data-theme="dark"] .welcome-card{background:linear-gradient(135deg,rgba(20,32,70,.92),rgba(30,48,110,.86));box-shadow:inset 0 0 0 1px var(--surface-border),0 16px 42px rgba(0,0,0,.4)}
+:root[data-theme="dark"] .profile-banner{background:linear-gradient(135deg,rgba(36,60,130,.5),rgba(13,20,42,.35))}
+:root[data-theme="dark"] .stat-card.green>span{background:rgba(67,211,171,.14)}
+:root[data-theme="dark"] .stat-card.purple>span{background:rgba(171,158,255,.16)}
+
+/* Filled elements that carry white text keep a deep blue fill for contrast */
+:root[data-theme="dark"] :is(.primary-btn,.avatar,.large-avatar,.chat-title>span,.message.user .bubble,.chat-input button,.logo>span,.top-user-profile>span,.profile-photo i){background:var(--fill);color:#fff}
+:root[data-theme="dark"] .primary-btn{box-shadow:0 8px 20px rgba(10,60,170,.45)}
+:root[data-theme="dark"] .chat-input button.recording{background:#c4382d}
+:root[data-theme="dark"] .profile-photo i{border-color:var(--surface-solid)}
+:root[data-theme="dark"] .settings-card input.switch:checked{background:var(--fill)}
+:root[data-theme="dark"] .settings-card input.switch{background:rgba(148,170,220,.3)}
+:root[data-theme="dark"] .outline-btn{background:transparent}
+:root[data-theme="dark"] .remove-photo,:root[data-theme="dark"] .discard-btn{border-color:rgba(255,143,134,.5)}
+:root[data-theme="dark"] .history-actions :is(a,button){background:rgba(148,170,220,.06);border-color:var(--input-border)}
+
+/* Form controls */
+:root[data-theme="dark"] :is(.field,.profile-field>div,.chat-input input,.page-header select,.settings-card select,.chat-title select){background:var(--input-bg);border-color:var(--input-border);color:var(--text)}
+:root[data-theme="dark"] :is(.field,.profile-field>div):focus-within,:root[data-theme="dark"] .chat-input input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--focus-ring)}
+:root[data-theme="dark"] :is(input,textarea)::placeholder{color:#8794b6}
+:root[data-theme="dark"] input:disabled{color:#9eaacb}
+:root[data-theme="dark"] .profile-field>span{color:#c9d4f0}
+:root[data-theme="dark"] .field svg{color:#9eaacb}
+:root[data-theme="dark"] :is(a,button,input,select,textarea,[tabindex]):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+/* Upload */
+:root[data-theme="dark"] .drop-zone{background:rgba(8,13,32,.55);border-color:rgba(148,170,220,.35)}
+:root[data-theme="dark"] .drop-zone:hover{background:var(--primary-soft);border-color:var(--primary)}
+:root[data-theme="dark"] :is(.history-loading span,.processing-status span){border-color:rgba(148,170,220,.25);border-top-color:var(--primary)}
+
+/* Chat */
+:root[data-theme="dark"] .chat-title{background:linear-gradient(135deg,rgba(18,28,60,.96),rgba(28,44,98,.9));border-bottom-color:var(--surface-border)}
+:root[data-theme="dark"] .messages{background:rgba(5,9,24,.6)}
+:root[data-theme="dark"] .message .bubble{background:#17224a;box-shadow:0 5px 16px rgba(0,0,0,.3)}
+:root[data-theme="dark"] .message .bubble small{color:#94a1c3}
+:root[data-theme="dark"] .message.user .bubble small{color:rgba(255,255,255,.78)}
+:root[data-theme="dark"] .chat-input{background:var(--surface-solid)}
+:root[data-theme="dark"] .stop-speaking{background:rgba(110,168,255,.12)}
+:root[data-theme="dark"] .compact-chat{box-shadow:0 24px 70px rgba(0,0,0,.6),inset 0 0 0 1px var(--surface-border)}
+:root[data-theme="dark"] .floating-chat{border-color:rgba(180,210,255,.55);background:linear-gradient(135deg,#3a8cff,#1452c4)}
+
+/* Status & semantic colours */
+:root[data-theme="dark"] :is(.dashboard-error,.analysis-banner.urgent,.message.assistant.error .bubble,.profile-status.error-text){background:rgba(255,107,95,.12);border-color:rgba(255,107,95,.42);color:#ffb7b0}
+:root[data-theme="dark"] :is(.analysis-banner.warning,.analysis-disclaimer){background:rgba(245,180,60,.1);border-color:rgba(245,180,60,.36);color:#f6d78f}
+:root[data-theme="dark"] :is(.risk-pill.unknown,.status-chip){color:#c6cfe6}
+:root[data-theme="dark"] :is(.risk-pill.low,.status-chip.normal,.tag.routine){background:rgba(67,211,171,.15);color:#7ce6c6}
+:root[data-theme="dark"] :is(.risk-pill.medium,.tag.soon,.status-chip.implausible){background:rgba(245,180,60,.15);color:#f7cd74}
+:root[data-theme="dark"] :is(.risk-pill.high,.tag.urgent,.status-chip.high,.status-chip.low,.status-chip.abnormal){background:rgba(255,107,95,.16);color:#ffa59d}
+:root[data-theme="dark"] :is(.photo-pending,.settings-note){color:#f7cd74!important}
+:root[data-theme="dark"] :is(.insight-list,.finding-card p,.evidence-list){color:#c9d3ee}
+:root[data-theme="dark"] :is(.finding-card.urgent,.problem-card.critical){background:rgba(255,107,95,.07)}
+:root[data-theme="dark"] .score-gauge{background:conic-gradient(var(--primary) var(--score),rgba(148,170,220,.16) 0)}
+:root[data-theme="dark"] .score-gauge::after{background:var(--surface-solid)}
+
+/* Recharts (inline SVG defaults assume a white page) */
+:root[data-theme="dark"] .recharts-cartesian-grid line{stroke:rgba(148,170,220,.16)}
+:root[data-theme="dark"] :is(.recharts-cartesian-axis-line,.recharts-cartesian-axis-tick-line){stroke:rgba(148,170,220,.35)}
+:root[data-theme="dark"] .recharts-text{fill:#aab6d3}
+:root[data-theme="dark"] .recharts-default-tooltip{background:#111a38!important;border-color:rgba(148,170,220,.3)!important;color:var(--text)}
+:root[data-theme="dark"] .recharts-tooltip-cursor{fill:rgba(148,170,220,.08)}
+:root[data-theme="dark"] .recharts-legend-item-text{color:var(--gray-500)!important}
+
+
+/* Solid panels where content behind must not show through */
+:root[data-theme="dark"] .chat-card{background:#0c1431}
+:root[data-theme="dark"] .messages{background:#080e24}
+:root[data-theme="dark"] .primary-btn:disabled{opacity:1;background:rgba(110,168,255,.16);color:#9fb0d6;box-shadow:none}
+:root[data-theme="dark"] .report-decision-bar{background:rgba(9,14,34,.96)}
